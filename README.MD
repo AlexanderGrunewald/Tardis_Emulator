@@ -58,8 +58,7 @@ emulatorv3/
 
 2. Create a virtual environment (optional but recommended):
    ```
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   conda create -new tardis_emulator
    ```
 
 3. Install dependencies:
