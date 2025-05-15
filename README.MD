@@ -4,7 +4,7 @@ A PyTorch-based emulator for the TARDIS radiative transfer code.
 
 ## Project Overview
 
-This project aims to develop a neural network emulator for the TARDIS radiative transfer code, allowing for fast approximations of TARDIS simulations. The emulator is built using PyTorch and is designed to be easily extensible for different model architectures and training strategies.
+This project aims to develop a neural network emulator for the TARDIS radiative transfer code, allowing for fast approximations of TARDIS simulations by providingit better starting values for type 1a supernovs.
 
 ## Project Structure
 
@@ -71,7 +71,7 @@ emulatorv3/
 
 #### Data Preparation
 
-1. Place your raw TARDIS simulation data in the `data/raw/` directory.
+1. Place your raw DALEC VAE simulation data in the `data/raw/` directory slomg with the latent config.
 2. Use the data processing scripts in `src/data_processing/` to preprocess the data.
 
 #### Model Configuration
