@@ -58,7 +58,7 @@ emulatorv3/
 
 2. Create a virtual environment (optional but recommended):
    ```
-   conda create -new tardis_emulator
+   conda create -n tardis_emulator
    ```
 
 3. Install dependencies:
