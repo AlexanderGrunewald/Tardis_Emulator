@@ -90,7 +90,7 @@ pytest tests/
 
 ## License
 
-[Specify your license here]
+MIT License
 
 ## Acknowledgments
 
