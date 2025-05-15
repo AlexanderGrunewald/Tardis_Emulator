@@ -92,7 +92,3 @@ pytest tests/
 
 MIT License
 
-## Acknowledgments
-
-- TARDIS Team
-- [Other acknowledgments]
