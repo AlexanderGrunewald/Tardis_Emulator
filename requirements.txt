@@ -1,0 +1,33 @@
+# TARDIS Emulator Project Dependencies
+
+# Core libraries
+numpy>=1.26.3,<2.0.0  # Tables requires numpy <2.0.0
+pandas>=2.2.0
+matplotlib>=3.8.0
+seaborn>=0.12.2
+h5py>=3.10.0
+tables>=3.9.0  # PyTables for enhanced HDF5 support with pandas
+pyarrow>=15.0.0  # For feather file format support
+
+# PyTorch and related libraries
+torch>=2.7.0  # Latest stable version
+torchvision>=0.16.0
+torchaudio>=2.1.0
+
+# Data processing
+scikit-learn>=1.4.0
+scipy>=1.12.0
+
+# Utilities
+pyyaml>=6.0.1
+tqdm>=4.66.0
+
+# Visualization
+plotly>=5.18.0
+
+# Experiment tracking (optional)
+# wandb>=0.16.0
+# tensorboard>=2.15.0
+
+# Testing
+pytest>=8.0.0

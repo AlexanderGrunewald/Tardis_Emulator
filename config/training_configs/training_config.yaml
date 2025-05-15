@@ -1,0 +1,39 @@
+# Training Configuration for TARDIS Emulator
+
+# Model configuration
+model_config: "../model_configs/cnn_model.yaml"
+
+# Training parameters
+training:
+  batch_size: 64
+  num_epochs: 100
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  optimizer: "Adam"  # Adam, SGD, RMSprop, etc.
+  scheduler: "ReduceLROnPlateau"  # None, StepLR, ReduceLROnPlateau, etc.
+  scheduler_params:
+    patience: 10
+    factor: 0.5
+    min_lr: 0.00001
+  early_stopping:
+    enabled: true
+    patience: 20
+    min_delta: 0.0001
+
+# Data parameters
+data:
+  train_data_path: "../../data/processed/train_data.h5"
+  val_data_path: "../../data/processed/val_data.h5"
+  test_data_path: "../../data/processed/test_data.h5"
+  input_normalization: "standard"  # none, standard, minmax
+  target_normalization: "standard"  # none, standard, minmax
+  train_val_test_split: [0.7, 0.15, 0.15]  # Only used if splitting from a single dataset
+
+# Logging and checkpointing
+logging:
+  log_dir: "../../results/logs"
+  checkpoint_dir: "../../results/checkpoints"
+  save_best_only: true
+  save_frequency: 5  # Save every N epochs
+  tensorboard: true
+  wandb: false  # Whether to use Weights & Biases for logging
