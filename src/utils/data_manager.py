@@ -15,21 +15,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 class DataManager:
-    """
-    Data manager for loading and preprocessing data for the TARDIS emulator.
 
-    This class handles loading data from feather files, preprocessing it according
-    to the configuration, splitting it into train/validation/test sets, and creating
-    PyTorch DataLoader objects.
-    """
 
     def __init__(self, config: TrainingConfig):
-        """
-        Initialize the DataManager.
 
-        Args:
-            config (TrainingConfig): The training configuration
-        """
         self.config = config
         self.data_params = config.get_data_params()
         self.predictors_scaler = None
@@ -44,12 +33,7 @@ class DataManager:
         return standardizer.transform(X)
 
     def load_preprocessed_data(self) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        """
-        Load the preprocessed data from feather files.
 
-        Returns:
-            Tuple[pd.DataFrame, pd.DataFrame]: The predictor and target DataFrames
-        """
         # Get the paths from the configuration
         predictors_path = self.config.resolve_path(self.data_params["full_predictors"])
         targets_path = self.config.resolve_path(self.data_params["full_targets"])
@@ -66,16 +50,7 @@ class DataManager:
 
 
     def create_train_val_test_split(self, predictors: np.ndarray, targets: np.ndarray) -> Dict[str, Tuple[np.ndarray, np.ndarray]]:
-        """
-        Split the data into train, validation, and test sets.
 
-        Args:
-            predictors (np.ndarray): The predictor array
-            targets (np.ndarray): The target array
-
-        Returns:
-            Dict[str, Tuple[np.ndarray, np.ndarray]]: Dictionary containing the splits
-        """
         # Get the split ratios from the configuration
         split_ratios = self.data_params.get("train_val_test_split", [0.7, 0.15, 0.15])
 
@@ -108,16 +83,7 @@ class DataManager:
         return splits
 
     def create_dataloaders(self, splits: Dict[str, Tuple[np.ndarray, np.ndarray]], batch_size: Optional[int] = None) -> Dict[str, DataLoader]:
-        """
-        Create DataLoader objects for the splits.
 
-        Args:
-            splits (Dict[str, Tuple[np.ndarray, np.ndarray]]): Dictionary containing the splits
-            batch_size (int, optional): The batch size. If None, uses the value from the configuration.
-
-        Returns:
-            Dict[str, DataLoader]: Dictionary containing the DataLoader objects
-        """
         if batch_size is None:
             batch_size = self.config.get_nested_value(["training", "batch_size"], 32)
 
@@ -146,17 +112,7 @@ class DataManager:
         return dataloaders
 
     def prepare_data(self, batch_size: Optional[int] = None) -> Dict[str, DataLoader]:
-        """
-        Prepare the data for training.
 
-        This method loads the data, preprocesses it, splits it, and creates DataLoader objects.
-
-        Args:
-            batch_size (int, optional): The batch size. If None, uses the value from the configuration.
-
-        Returns:
-            Dict[str, DataLoader]: Dictionary containing the DataLoader objects
-        """
         # Load the data
         predictors_df, targets_df = self.load_preprocessed_data()
 
