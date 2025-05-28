@@ -23,7 +23,7 @@ emulatorv3/
 │
 ├── docs/                       # Documentation
 │
-├── notebooks/                  # Jupyter notebooks
+├── notebooks/                  # Jupyter and Marimo notebooks
 │   ├── exploratory/            # Exploration and prototyping
 │   ├── analysis/               # Analysis of results
 │   └── visualization/          # Visualizations for presentations/papers
