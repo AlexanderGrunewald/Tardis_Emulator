@@ -1,13 +1,13 @@
 # Training Configuration for TARDIS Emulator
 
 # Model configuration
-model_config: "../model_configs/cnn_model.yaml"
+model_config: "../model_configs/ffn_model.yaml"
 
 # Training parameters
 training:
-  batch_size: 64
-  num_epochs: 100
-  learning_rate: 0.001
+  batch_size: 32
+  num_epochs: 2000
+  learning_rate: 0.0001
   weight_decay: 0.0001
   optimizer: "Adam"  # Adam, SGD, RMSprop, etc.
   scheduler: "ReduceLROnPlateau"  # None, StepLR, ReduceLROnPlateau, etc.
@@ -22,11 +22,8 @@ training:
 
 # Data parameters
 data:
-  train_data_path: "../../data/processed/train_data.h5"
-  val_data_path: "../../data/processed/val_data.h5"
-  test_data_path: "../../data/processed/test_data.h5"
-  input_normalization: "standard"  # none, standard, minmax
-  target_normalization: "standard"  # none, standard, minmax
+  full_predictors: "../../data/processed/predictor/x_data.feather"
+  full_targets: "../../data/processed/target/y_data.feather"
   train_val_test_split: [0.7, 0.15, 0.15]  # Only used if splitting from a single dataset
 
 # Logging and checkpointing
@@ -35,5 +32,6 @@ logging:
   checkpoint_dir: "../../results/checkpoints"
   save_best_only: true
   save_frequency: 5  # Save every N epochs
-  tensorboard: true
-  wandb: false  # Whether to use Weights & Biases for logging
+  wandb: true
+  wandb_entity: "alexgrunewald123-michigan-state-university"
+  wandb_project: "tardis-emulator"

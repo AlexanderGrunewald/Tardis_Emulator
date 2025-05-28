@@ -20,7 +20,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '.
 pyarrow_installed = importlib.util.find_spec("pyarrow") is not None
 
 from src.data_processing.vae_data_transform import (
-    process_vae_data_parallel,
+    process_vae_data,
     scale_results,
     load_vae_config
 )
@@ -39,7 +39,6 @@ def create_vae_data_pipeline(
     output_targets_path: str,
     output_predictors_path: str,
     n_elem: int = 100,
-    workers: int = 4,
     scale_data: bool = True,
     save_scaler: bool = True,
     scaler_path: str = "scalers.pkl"
@@ -53,7 +52,6 @@ def create_vae_data_pipeline(
         output_targets_path: Path to save the targets (w and v values) feather file
         output_predictors_path: Path to save the predictors (latent values) feather file
         n_elem: Number of elements to interpolate to (default: 100)
-        workers: Number of worker threads to use (default: 4)
         scale_data: Whether to scale the data (default: True)
         save_scaler: Whether to save the scaler (default: True)
         scaler_path: Path to save the scaler (default: "scalers.pkl")
@@ -77,8 +75,8 @@ def create_vae_data_pipeline(
             raise FileNotFoundError(f"Input file not found: {input_hdf_path}")
 
         # Process the data in parallel
-        logger.info(f"Processing VAE data with n_elem={n_elem}, workers={workers}")
-        w_interp, v_interp = process_vae_data_parallel(input_hdf_path, n_elem, workers)
+        logger.info(f"Processing VAE data with n_elem={n_elem}")
+        w_interp, v_interp = process_vae_data(input_hdf_path, n_elem)
         logger.info("Finished interpolating VAE data")
         logger.info(f"Loading Vae Latent vectors from {config_path}")
         latent_vals = load_vae_config(config_path).reset_index(drop=True)
@@ -163,7 +161,6 @@ def create_vae_data_pipeline(
             "targets_file": output_targets_path,
             "predictors_file": output_predictors_path,
             "n_elem": n_elem,
-            "workers": workers,
             "data_type": data_type,
             "w_shape": w_final.shape,
             "v_shape": v_final.shape,
@@ -191,25 +188,18 @@ def main():
     parser.add_argument("config_vae", help="Path to the config HDF file")
     parser.add_argument("targets_path", help="Path to save the targets (w and v values) feather file")
     parser.add_argument("predictors_path", help="Path to save the predictors (latent values) feather file")
-    parser.add_argument("--n_elem", type=int, default=100, help="Number of elements to interpolate to")
-    parser.add_argument("--workers", type=int, default=4, help="Number of worker threads to use")
+    parser.add_argument("--n_elem", type=int, default=20, help="Number of elements to interpolate to")
     parser.add_argument("--no-scale", action="store_true", help="Do not scale the data")
     parser.add_argument("--no-save-scaler", action="store_true", help="Do not save the scaler")
     parser.add_argument("--scaler-path", default="scalers.pkl", help="Path to save the scaler")
 
     args = parser.parse_args()
 
-    targets_df, predictors_df, metadata = create_vae_data_pipeline(
-        args.input_path,
-        args.config_vae,
-        args.targets_path,
-        args.predictors_path,
-        n_elem=args.n_elem,
-        workers=args.workers,
-        scale_data=not args.no_scale,
-        save_scaler=not args.no_save_scaler,
-        scaler_path=args.scaler_path
-    )
+    targets_df, predictors_df, metadata = create_vae_data_pipeline(args.input_path, args.config_vae, args.targets_path,
+                                                                   args.predictors_path, n_elem=args.n_elem,
+                                                                   scale_data=not args.no_scale,
+                                                                   save_scaler=not args.no_save_scaler,
+                                                                   scaler_path=args.scaler_path)
 
     # Print some information about the processed data
     print(f"Targets shape: {targets_df.shape}")

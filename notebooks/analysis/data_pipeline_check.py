@@ -6,21 +6,26 @@ app = marimo.App(width="medium")
 
 @app.cell
 def _():
+    import sys
+    from pathlib import Path
     import pandas as pd
     import numpy as np
     import sklearn as sk
     import matplotlib.pyplot as plt
-    from src.data_processing.vae_data_transform import inverse_transform
+    sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+    from src.data_processing.vae_data_transform import inverse_transform, process_vae_data
     import marimo as mo
     return inverse_transform, mo, np, pd, plt
 
 
 @app.cell
 def _(mo):
-    mo.md(r'''
+    mo.md(
+        r"""
     # Data Pipeline Evaluation
-        This Notebook's Purpose is to assess the Data Piepline for the processing of the VAE data that was provided by Jack O'Brian. The config file holds the Latent and Parameter Values of the Variational Auto Encoder. Mapped to it, we have the VAE simulations for which the model was trained on. Further information on how this data was produced can be found in the Dalek paper 
-    ''')
+        This Notebook's Purpose is to assess the Data Piepline for the processing of the VAE data that was provided by Jack O'Brian. The config file holds the Latent and Parameter Values of the Variational Auto Encoder. Mapped to it, we have the VAE simulations for which the model was trained on. Further information on how this data was produced can be found in the Dalek paper
+    """
+    )
     return
 
 
@@ -38,6 +43,13 @@ def _(pd):
 
 
 @app.cell
+def _(X_data, y_data):
+    print(X_data.shape)
+    print(y_data.shape)
+    return
+
+
+@app.cell
 def _(X_data):
     X_data.head()
     return
@@ -45,7 +57,8 @@ def _(X_data):
 
 @app.cell
 def _(mo):
-    mo.md(r"""
+    mo.md(
+        r"""
     ## Inverse Transform
 
     The inverse transformation for \( V \) and \( W \) is defined as:
@@ -64,7 +77,8 @@ def _(mo):
     - \( \mu_v \) and \( \mu_w \) are the mean values,
 
     - \( \sigma \) represents the scaling factor.
-    """)
+    """
+    )
     return
 
 
@@ -86,7 +100,7 @@ def _(mo, v_origingal):
 
 @app.cell
 def _(mo, slider):
-    mo.md(f"Data at index {slider.value}   {slider}")
+    mo.md(f"""Data at index {slider.value}   {slider}""")
     return
 
 
