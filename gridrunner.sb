@@ -1,0 +1,44 @@
+#!/bin/bash --login
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=10GB
+#SBATCH --time=10:59:00
+#SBATCH --job-name=grid-runner1
+#SBATCH --output=sbatchLogs/%x-%j.SLURMout
+#SBATCH --gpus-per-node=v100:1
+#SBATCH --array=0-181
+
+date;hostname;pwd
+
+module purge
+module load miniforge3
+conda activate emulator3
+
+echo start: $(date +%H:%M:%S)
+codepath="/mnt/home/grunew14/Documents/tardis/Tardis_Emulator/"
+
+declare -a depths=(5 6 7 8 9 10)
+declare -a widths=(100 200 300 400 500 600)
+declare -a lr=(0.0001)
+declare -a activation=("relu" "tanh" "sigmoid" "mish" "softplus")
+
+# Total number of combinations for each parameter
+num_depths=${#depths[@]}
+num_widths=${#widths[@]}
+num_lr=${#lr[@]}
+num_activations=${#activation[@]}
+
+# Compute parameter index
+let "activation_index=SLURM_ARRAY_TASK_ID % num_activations"
+let "lr_index=(SLURM_ARRAY_TASK_ID / num_activations) % num_lr"
+let "width_index=(SLURM_ARRAY_TASK_ID / (num_activations * num_lr)) % num_widths"
+let "depth_index=SLURM_ARRAY_TASK_ID / (num_activations * num_lr * num_widths)"
+
+# Get actual parameters based on index
+depth=${depths[$depth_index]}
+width=${widths[$width_index]}
+learning_rate=${lr[$lr_index]}
+active=${activation[$activation_index]}
+
+# Run the Python script with the parameters
+srun python $codepath/trainer.py --n_layers $depth --hidden_dim $width --lr $learning_rate --activation $active

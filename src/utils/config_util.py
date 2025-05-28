@@ -12,27 +12,10 @@ class ConfigError(Exception):
     pass
 
 class Config:
-    """
-    A general configuration loader for YAML files.
 
-    This class can load configuration files and resolve references to other configuration files.
-    It also supports validation of required fields and provides access to the loaded configuration.
-
-    Attributes:
-        config_file (str): Path to the configuration file
-        config (dict): The loaded configuration
-        base_dir (str): The directory containing the configuration file
-    """
 
     def __init__(self, config_file_path: str, auto_load: bool = True):
-        """
-        Initialize the Config object.
 
-        Args:
-            config_file_path (str): Path to the configuration file
-            auto_load (bool, optional): Whether to automatically load the configuration. Defaults to True.
-            validate (bool, optional): Whether to validate the configuration. Defaults to True.
-        """
         self.config_file = config_file_path
         self.config = None
         self.base_dir = os.path.dirname(os.path.abspath(config_file_path))
@@ -40,17 +23,84 @@ class Config:
         if auto_load:
             self.read_config()
 
+    def make_config(self, depth: int, width: int, learning_rate: float, activation: str, 
+                  output_dir: str = "config/grid_configs"):
+
+        # Create output directory if it doesn't exist
+        os.makedirs(output_dir, exist_ok=True)
+
+        # Create model config
+        model_config = {
+            "model_name": f"FFN_Emulator_d{depth}_w{width}_{activation}",
+            "model_type": "FFN",
+            "architecture": {
+                "input_dim": 6,  # Assuming this is fixed
+                "hidden_dims": [width] * depth,
+                "output_dim": 40,  # Assuming this is fixed
+                "activation": activation,
+                "dropout_rate": "None"
+            }
+        }
+
+        # Create model config filename
+        model_config_filename = f"ffn_model_d{depth}_w{width}_{activation}.yaml"
+        model_config_path = os.path.join(output_dir, model_config_filename)
+
+        # Save model config
+        with open(model_config_path, "w") as f:
+            yaml.dump(model_config, f, default_flow_style=False)
+
+        # Create training config
+        training_config = {
+            "model_config": model_config_path,
+            "training": {
+                "batch_size": 32,
+                "num_epochs": 2000,
+                "learning_rate": learning_rate,
+                "weight_decay": 0.0001,
+                "optimizer": "Adam",
+                "scheduler": "ReduceLROnPlateau",
+                "scheduler_params": {
+                    "patience": 10,
+                    "factor": 0.5,
+                    "min_lr": 0.00001
+                },
+                "early_stopping": {
+                    "enabled": True,
+                    "patience": 20,
+                    "min_delta": 0.0001
+                }
+            },
+            "data": {
+                "full_predictors": "../../data/processed/predictor/x_data.feather",
+                "full_targets": "../../data/processed/target/y_data.feather",
+                "train_val_test_split": [0.7, 0.15, 0.15]
+            },
+            "logging": {
+                "log_dir": "../../results/logs",
+                "checkpoint_dir": "../../results/checkpoints",
+                "save_best_only": True,
+                "save_frequency": 5,
+                "wandb": True,
+                "wandb_entity": "alexgrunewald123-michigan-state-university",
+                "wandb_project": "tardis-emulator",
+                "wandb_run_name": f"ffn_d{depth}_w{width}_lr{learning_rate}_{activation}"
+            }
+        }
+
+        # Create training config filename
+        training_config_filename = f"training_config_d{depth}_w{width}_lr{learning_rate}_{activation}.yaml"
+        training_config_path = os.path.join(output_dir, training_config_filename)
+
+        # Save training config
+        with open(training_config_path, "w") as f:
+            yaml.dump(training_config, f, default_flow_style=False)
+
+        return model_config_path, training_config_path
+
+
+
     def read_config(self) -> Dict[str, Any]:
-        """
-        Read the configuration from the file.
-
-        Returns:
-            dict: The loaded configuration
-
-        Raises:
-            FileNotFoundError: If the configuration file does not exist
-            yaml.YAMLError: If the configuration file is not valid YAML
-        """
         try:
             with open(self.config_file, "r") as f:
                 self.config = yaml.load(f, Loader=yaml.FullLoader)
@@ -64,47 +114,16 @@ class Config:
             raise
 
     def get_config(self) -> Dict[str, Any]:
-        """
-        Get the loaded configuration.
-
-        Returns:
-            dict: The loaded configuration
-
-        Raises:
-            ConfigError: If the configuration has not been loaded
-        """
         if self.config is None:
             raise ConfigError("Configuration has not been loaded. Call read_config() first.")
         return self.config
 
     def resolve_path(self, path: str) -> str:
-        """
-        Resolve a path relative to the configuration file.
-
-        Args:
-            path (str): The path to resolve
-
-        Returns:
-            str: The resolved path
-        """
         if os.path.isabs(path):
             return path
         return os.path.normpath(os.path.join(self.base_dir, path))
 
     def get_nested_value(self, keys: Union[str, List[str]], default: Any = None) -> Any:
-        """
-        Get a nested value from the configuration.
-
-        Args:
-            keys (str or list): The key or list of keys to access the nested value
-            default (any, optional): The default value to return if the key is not found. Defaults to None.
-
-        Returns:
-            any: The value at the specified keys, or the default value if not found
-
-        Raises:
-            ConfigError: If the configuration has not been loaded
-        """
         if self.config is None:
             raise ConfigError("Configuration has not been loaded. Call read_config() first.")
 
@@ -120,49 +139,19 @@ class Config:
 
 
 class ModelConfig(Config):
-    """
-    Configuration loader for model configuration files.
-
-    This class extends the Config class with specific functionality for model configurations.
-    """
 
     def __init__(self, config_file_path: str, auto_load: bool = True):
-        """
-        Initialize the ModelConfig object.
-
-        Args:
-            config_file_path (str): Path to the model configuration file
-            auto_load (bool, optional): Whether to automatically load the configuration. Defaults to True.
-        """
         super().__init__(config_file_path, auto_load)
 
 
     def get_architecture(self) -> Dict[str, Any]:
-        """
-        Get the architecture configuration.
-
-        Returns:
-            dict: The architecture configuration
-        """
         return self.get_nested_value("architecture", {})
 
 
 class TrainingConfig(Config):
-    """
-    Configuration loader for training configuration files.
-
-    This class extends the Config class with specific functionality for training configurations,
-    including loading the referenced model configuration.
-    """
 
     def __init__(self, config_file_path: str, auto_load: bool = True):
-        """
-        Initialize the TrainingConfig object.
 
-        Args:
-            config_file_path (str): Path to the training configuration file
-            auto_load (bool, optional): Whether to automatically load the configuration. Defaults to True.
-        """
         super().__init__(config_file_path, auto_load)
         self.model_config = None
 
@@ -171,15 +160,7 @@ class TrainingConfig(Config):
 
 
     def load_model_config(self) -> ModelConfig:
-        """
-        Load the model configuration referenced in the training configuration.
 
-        Returns:
-            ModelConfig: The loaded model configuration
-
-        Raises:
-            ConfigError: If the model configuration path is not specified
-        """
         if "model_config" not in self.config:
             raise ConfigError("Model configuration path not specified in training configuration")
 
@@ -188,15 +169,7 @@ class TrainingConfig(Config):
         return self.model_config
 
     def get_model_config(self) -> ModelConfig:
-        """
-        Get the loaded model configuration.
 
-        Returns:
-            ModelConfig: The loaded model configuration
-
-        Raises:
-            ConfigError: If the model configuration has not been loaded
-        """
         if self.model_config is None:
             raise ConfigError("Model configuration has not been loaded. Call load_model_config() first.")
         return self.model_config

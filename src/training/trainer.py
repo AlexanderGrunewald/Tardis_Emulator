@@ -66,17 +66,7 @@ class EarlyStopping:
 
 
 def create_prediction_plot(true_values, pred_values, title):
-    """
-    Create a matplotlib figure comparing true values and predictions.
 
-    Args:
-        true_values (torch.Tensor): Ground truth values
-        pred_values (torch.Tensor): Predicted values
-        title (str): Plot title
-
-    Returns:
-        matplotlib.figure.Figure: The created figure
-    """
     # Ensure tensors are on CPU and detached from computation graph
     if isinstance(true_values, torch.Tensor):
         true_values = true_values.cpu().detach()
@@ -738,29 +728,49 @@ class Trainer:
 
 
 def main():
-    """
-    Main function to demonstrate the trainer usage.
-    """
     import argparse
+    from src.utils.config_util import Config
 
     parser = argparse.ArgumentParser(description="Train a TARDIS emulator model")
     parser.add_argument("--config", type=str, default="config/training_configs/training_config.yaml",
                         help="Path to the training configuration file")
     parser.add_argument("--checkpoint", type=str, default=None,
                         help="Path to a checkpoint to resume training from")
+
+    # Add grid search parameters
+    parser.add_argument("--n_layers", type=int, default=None,
+                        help="Number of hidden layers (depth)")
+    parser.add_argument("--hidden_dim", type=int, default=None,
+                        help="Width of each hidden layer")
+    parser.add_argument("--lr", type=float, default=None,
+                        help="Learning rate")
+    parser.add_argument("--activation", type=str, default=None,
+                        help="Activation function (relu, tanh, sigmoid, mish, etc.)")
+
     args = parser.parse_args()
 
-    # Create trainer
-    trainer = Trainer(args.config)
+    if all([args.n_layers, args.hidden_dim, args.lr, args.activation]):
+        config = Config("dummy_path", auto_load=False)
+        model_config_path, training_config_path = config.make_config(
+            depth=args.n_layers,
+            width=args.hidden_dim,
+            learning_rate=args.lr,
+            activation=args.activation
+        )
 
-    # Load checkpoint if specified
+        config_path = training_config_path
+        print(f"Created config files:\n  Model: {model_config_path}\n  Training: {training_config_path}")
+    else:
+        config_path = args.config
+        print(f"Using existing config: {config_path}")
+
+    trainer = Trainer(config_path)
+
     if args.checkpoint:
         trainer.load_checkpoint(args.checkpoint)
 
-    # Train model
     history = trainer.train()
 
-    # Print final metrics
     print("\nTraining completed!")
     print(f"Final train loss: {history['train_loss'][-1]:.4f}")
     print(f"Final validation loss: {history['val_loss'][-1]:.4f}")
