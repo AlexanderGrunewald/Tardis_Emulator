@@ -73,18 +73,19 @@ emulatorv3/
 1. Place your raw DALEC VAE simulation data in the `data/raw/` directory slomg with the latent config.
 2. Use the data processing scripts in `src/data_processing/` to preprocess the data.
 
+```
+python src/data_processing/vae_data_pipeline.py data/raw/VAE_Simulations.hdf data/raw/VAE_Simulation_config.hdf data/processed/target/y_data.feather data/processed/predictor/x_data.feather --n_elem 20
+```
+
 #### Model Configuration
 
 1. Configure your model architecture in a YAML file in `config/model_configs/`.
 2. Configure training parameters in a YAML file in `config/training_configs/`.
 
-
-## Development
-
-### Running Tests
+Alternatively you can specify the number of layers, activation functions, and number of neurons manually.
 
 ```
-pytest tests/
+python src/training/trainer.py --n_layers 10 --hidden_dim 200 --lr 1e4 --activation mish
 ```
 
 ## License
