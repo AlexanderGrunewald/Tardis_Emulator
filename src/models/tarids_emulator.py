@@ -1,23 +1,28 @@
-from typing import Optional
-
+import pprint
+import os
+import sys
+from typing import Optional, Dict, Any
+from pathlib import Path
 import torch
-import yaml
 from torch import nn
-import torch.nn.functional as F
-from torch.utils.data import DataLoader, TensorDataset
-import random
-from src.data_processing.vae_data_transform import inverse_transform
-import numpy as np
+
+# Add the project root to the Python path
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+
+from src.utils.config_util import ModelConfig
 
 
 class Emulator(nn.Module):
-    def __init__(self, config_arch: str = "config.yaml", config_training: str = "traininig.yaml"):
+    def __init__(self, config_arch: str = "config.yaml"):
         super().__init__()
 
-        with open(config_arch, "r") as f:
-            self.config: dict = yaml.load(f, Loader=yaml.FullLoader)
+        # Load the model configuration
+        self.model_config = ModelConfig(config_arch)
+        self.config: Dict[str, Any] = self.model_config.get_config()
 
-        model_arch: dict = self.config["architecture"]
+
+        # Get the architecture parameters
+        model_arch: dict = self.model_config.get_architecture()
 
         self.input_dim: int = model_arch["input_dim"]
         self.hidden_dim: list = model_arch["hidden_dims"]
@@ -48,5 +53,22 @@ class Emulator(nn.Module):
 
         return activation_dict.get(activation_name.lower())
 
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        for layer in self.layers:
+            x = self.activation(layer(x))
+        x = self.output_layer(x)
+        return x
+
+
 if __name__ == '__main__':
-    model = Emulator("../../config/model_configs/ffn_model.yaml")
+    # Use a path relative to the project root
+    config_path = os.path.join("config", "model_configs", "ffn_model.yaml")
+    model = Emulator(config_path)
+    meta = {
+        "Model Input": model.input_dim,
+        "Model Output": model.output_dim,
+        "Model Architecture": model.config["architecture"],
+        "Model Activation": model.activation,
+        "Layers": model.layers
+    }
+    pprint.pprint(meta)

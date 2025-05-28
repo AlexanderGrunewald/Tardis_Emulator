@@ -1,24 +1,12 @@
 # CNN Model Configuration for TARDIS Emulator
 
-model_name: "CNN_Emulator"
-model_type: "CNN"
+model_name: "FFN_Emulator"
+model_type: "FFN"
 
 # Architecture parameters
 architecture:
-  input_channels: 1
-  hidden_channels: [16, 32, 64]
-  kernel_sizes: [3, 3, 3]
-  stride: 1
-  padding: 1
-  activation: "ReLU"
-  dropout_rate: 0.2
-  
-# Output parameters
-output:
-  output_size: 128
-  final_activation: "None"  # None, ReLU, Sigmoid, Tanh, etc.
-
-# Model initialization
-initialization:
-  weight_init: "xavier_uniform"
-  bias_init: "zeros"
+  input_dim: 6
+  hidden_dims: [200, 200, 200, 200, 200, 200, 200]
+  output_dim: 40
+  activation: "mish"
+  dropout_rate: "None"

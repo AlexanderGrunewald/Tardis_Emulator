@@ -90,49 +90,48 @@ def interpolate_data(v_inner, v_outer, w_data, n_elem: int) -> Tuple[np.array, n
         print(f"Error in interpolate_data: {e}")
         raise
 
-def thread_execution(v_inner_list, v_outer_list, w_data_list, n_elem: int, workers: int) -> List[Tuple[np.array, np.array]]:
+def execution(v_inner_list, v_outer_list, w_data_list, n_elem: int) -> List[Tuple[np.array, np.array]]:
     """
-    Process multiple data items in parallel using ThreadPoolExecutor.
+    Process data items in to interpolate.
 
     Args:
         v_inner_list: List of v_inner data arrays
         v_outer_list: List of v_outer data arrays
         w_data_list: List of w_data arrays
         n_elem: Number of elements to interpolate to
-        workers: Number of worker threads to use
 
     Returns:
         List of tuples containing (w_interp, v) for each input data item
     """
     # Create a list of n_elem values with the same length as the input lists
-    n_elem_list = [n_elem] * len(v_inner_list)
 
     results = []
 
     try:
-        with ThreadPoolExecutor(max_workers=workers) as executor:
-            # Submit all tasks and collect futures
-            results = list(executor.map(interpolate_data, v_inner_list, v_outer_list, w_data_list, n_elem_list))
+        for i  in range(len(v_inner_list)):
+            interp = interpolate_data(v_inner_list[i], v_outer_list[i],
+                                      w_data_list[i], n_elem)
+            results.append(interp)
+
     except Exception as e:
         print(f"Error during parallel execution: {e}")
         raise
 
     return results
 
-def process_vae_data_parallel(data_path: str, n_elem: int, workers: int = 4) -> Tuple[np.array, np.array]:
+def process_vae_data(data_path: str, n_elem: int) -> Tuple[np.array, np.array]:
     """
-    High-level function to load and process VAE data in parallel.
+    High-level function to load and process VAE data.
 
     Args:
         data_path: Path to the HDF file containing VAE latent vectors
         n_elem: Number of elements to interpolate to
-        workers: Number of worker threads to use (default: 4)
 
     Returns:
         List of tuples containing (w_interp, v) for each input data item
 
     Example:
-        >>> results = process_vae_data_parallel("path/to/vae_data.hdf", n_elem=100, workers=8)
+        >>> results = process_vae_data("path/to/vae_data.hdf",n_elem=100)
         >>> w_interp, v = results[0]  # Get the first processed item
     """
     try:
@@ -144,7 +143,7 @@ def process_vae_data_parallel(data_path: str, n_elem: int, workers: int = 4) -> 
             raise ValueError("Input data lists must have the same length")
 
         # Process the data in parallel
-        results = thread_execution(v_inner_vecs, v_outer_vecs, w_vecs, n_elem, workers)
+        results = execution(v_inner_vecs, v_outer_vecs, w_vecs, n_elem)
 
         w_interp, v_interp = zip(*results)
 
@@ -218,7 +217,7 @@ def inverse_transform(v_scaled: np.array = None, w_scaled: np.array = None,
     # Inverse transform v if provided
     if v_scaled is not None:
         v_log = scaler_v.inverse_transform(v_scaled)
-        v_original = np.exp(v_log)
+        v_original = np.cumsum(np.exp(v_log), axis =1)
 
     # Inverse transform w if provided
     if w_scaled is not None:
