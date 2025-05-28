@@ -11,11 +11,11 @@
 date;hostname;pwd
 
 module purge
-module load miniforge3
-conda activate emulator3
+module load Conda/3
+conda activate tardis_emulator
 
 echo start: $(date +%H:%M:%S)
-codepath="/mnt/home/grunew14/Documents/tardis/Tardis_Emulator/"
+codepath="/mnt/home/grunew14/Documents/tardis/Tardis_Emulator/src/training/"
 
 declare -a depths=(5 6 7 8 9 10)
 declare -a widths=(100 200 300 400 500 600)
